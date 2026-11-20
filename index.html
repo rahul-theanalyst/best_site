@@ -1150,3 +1150,90 @@
 
         renderHeroSlide(0);
         requestAnimationFrame(updateCarouselProgress);
+
+        // 3. Service Category Filter Pills
+        const filterPills = document.querySelectorAll('.filter-pill');
+        const serviceCards = document.querySelectorAll('.service-card');
+
+        filterPills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                const filter = pill.getAttribute('data-filter');
+
+                filterPills.forEach(p => {
+                    p.classList.remove('bg-brand-600', 'text-white', 'shadow-sm');
+                    p.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+                });
+                pill.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+                pill.classList.add('bg-brand-600', 'text-white', 'shadow-sm');
+
+                serviceCards.forEach(card => {
+                    const category = card.getAttribute('data-category');
+                    if (filter === 'all' || category === filter) {
+                        card.classList.remove('hidden');
+                        card.classList.add('flex');
+                    } else {
+                        card.classList.add('hidden');
+                        card.classList.remove('flex');
+                    }
+                });
+            });
+        });
+
+        // 4. Interactive Consultation Modal & Form Submission
+        const consultationModal = document.getElementById('consultation-modal');
+        const modalContextBadge = document.getElementById('modal-context-badge');
+        const toastNotification = document.getElementById('toast-notification');
+        const inquiryForm = document.getElementById('inquiry-form');
+
+        function openModal(contextTitle) {
+            if (!consultationModal) return;
+            if (modalContextBadge && contextTitle) {
+                modalContextBadge.textContent = contextTitle;
+            }
+            consultationModal.classList.remove('hidden');
+            consultationModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            if (!consultationModal) return;
+            consultationModal.classList.add('hidden');
+            consultationModal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            closeModal();
+            if (inquiryForm) inquiryForm.reset();
+
+            if (toastNotification) {
+                toastNotification.classList.remove('hidden');
+                toastNotification.classList.add('flex');
+                setTimeout(() => {
+                    toastNotification.classList.add('hidden');
+                    toastNotification.classList.remove('flex');
+                }, 4000);
+            }
+        }
+
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.handleFormSubmit = handleFormSubmit;
+
+        if (consultationModal) {
+            consultationModal.addEventListener('click', (e) => {
+                if (e.target === consultationModal) {
+                    closeModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
