@@ -198,11 +198,6 @@
                 <button onclick="goToHeroSlide(3)" aria-label="Slide 4" class="hero-dot h-2 w-2 rounded-full bg-white/45 hover:bg-white/80 transition-all duration-300 cursor-pointer"></button>
             </div>
         </div>
-
-        <!-- Bottom Edge Auto-Advance Progress Line -->
-        <div class="absolute bottom-0 inset-x-0 h-1 bg-white/15 z-30">
-            <div id="carousel-progress-bar" class="h-full bg-white w-0 transition-none"></div>
-        </div>
     </section>
 
     <!-- ==================== 3. KEY STATS / TRUST STRIP ==================== -->
@@ -1048,12 +1043,10 @@
         const heroSectionEl = document.getElementById('home');
         const heroSlides = document.querySelectorAll('.hero-slide');
         const heroDots = document.querySelectorAll('.hero-dot');
-        const progressBar = document.getElementById('carousel-progress-bar');
         const SLIDE_DURATION = 5000; // 5 seconds per slide
 
         let currentSlideIndex = 0;
-        let isCarouselPaused = false;
-        let slideStartTime = performance.now();
+        let carouselInterval = null;
 
         function renderHeroSlide(index) {
             if (!heroSlides.length) return;
@@ -1087,42 +1080,35 @@
                     dot.classList.add('w-2', 'bg-white/45');
                 }
             });
+        }
 
-            slideStartTime = performance.now();
-            if (progressBar) progressBar.style.width = '0%';
+        function resetCarouselTimer() {
+            if (carouselInterval) clearInterval(carouselInterval);
+            carouselInterval = setInterval(() => {
+                renderHeroSlide(currentSlideIndex + 1);
+            }, SLIDE_DURATION);
         }
 
         function nextHeroSlide() {
             renderHeroSlide(currentSlideIndex + 1);
+            resetCarouselTimer();
         }
 
         function prevHeroSlide() {
             renderHeroSlide(currentSlideIndex - 1);
+            resetCarouselTimer();
         }
 
         function goToHeroSlide(index) {
             renderHeroSlide(index);
+            resetCarouselTimer();
         }
 
-        function pauseHeroCarousel() {
-            isCarouselPaused = true;
-        }
-
-        function resumeHeroCarousel() {
-            isCarouselPaused = false;
-            slideStartTime = performance.now() - (parseFloat(progressBar?.style.width || '0') / 100) * SLIDE_DURATION;
-        }
-
-        window.pauseHeroCarousel = pauseHeroCarousel;
-        window.resumeHeroCarousel = resumeHeroCarousel;
         window.nextHeroSlide = nextHeroSlide;
         window.prevHeroSlide = prevHeroSlide;
         window.goToHeroSlide = goToHeroSlide;
 
         if (heroSectionEl) {
-            heroSectionEl.addEventListener('mouseenter', pauseHeroCarousel);
-            heroSectionEl.addEventListener('mouseleave', resumeHeroCarousel);
-
             // Touch Swipe Support for Mobile & Tablet Screens
             let touchStartX = 0;
             heroSectionEl.addEventListener('touchstart', (e) => {
@@ -1136,20 +1122,8 @@
             }, { passive: true });
         }
 
-        function updateCarouselProgress(now) {
-            if (!isCarouselPaused) {
-                const elapsed = now - slideStartTime;
-                const progress = Math.min((elapsed / SLIDE_DURATION) * 100, 100);
-                if (progressBar) progressBar.style.width = progress + '%';
-                if (elapsed >= SLIDE_DURATION) {
-                    nextHeroSlide();
-                }
-            }
-            requestAnimationFrame(updateCarouselProgress);
-        }
-
         renderHeroSlide(0);
-        requestAnimationFrame(updateCarouselProgress);
+        resetCarouselTimer();
 
         // 3. Service Category Filter Pills
         const filterPills = document.querySelectorAll('.filter-pill');
